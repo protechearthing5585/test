@@ -1,0 +1,108 @@
+# =============================================================================
+# My Account navigation (avatar / hamburger).
+# Import in HAC -> Console -> ImpEx Import (Legacy mode off).
+#
+# Document IDs (&nodeRef / &linkRef) must be unique in the whole script, so
+# Staged uses *_S aliases and Online uses *_O aliases.
+# =============================================================================
+
+$contentCatalog=bhgeContentCatalog
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+
+INSERT_UPDATE CMSNavigationNode;uid[unique=true];$contentCV[unique=true];name;title;parent(uid,$contentCV);&nodeRef
+;DsMyAccountNavNode;;My Account;My Account;BhgeNavNode;DsMyAccountNavNode_S
+;MyProfileNavNode;;My Account;My Account;DsMyAccountNavNode;MyProfileNavNode_S
+;OrderHistoryNavNode;;My Orders;My Orders;DsMyAccountNavNode;OrderHistoryNavNode_S
+;MyInvoicesNavNode;;My Invoices;My Invoices;DsMyAccountNavNode;MyInvoicesNavNode_S
+;MyReturnsNavNode;;My Returns;My Returns;DsMyAccountNavNode;MyReturnsNavNode_S
+;MyQuotesNavNode;;My Quotes;My Quotes;DsMyAccountNavNode;MyQuotesNavNode_S
+;SavedCartsNavNode;;Saved Carts;Saved Carts;DsMyAccountNavNode;SavedCartsNavNode_S
+;MyEquipmentNavNode;;My Equipment;My Equipment;DsMyAccountNavNode;MyEquipmentNavNode_S
+;MyFavNavNode;;My Favorites;My Favorites;DsMyAccountNavNode;MyFavNavNode_S
+;FeedbackLinksNavNode;;Feedback;Feedback;DsMyAccountNavNode;FeedbackLinksNavNode_S
+;AppDashboardNavNode;;Registration Requests;Registration Requests;DsMyAccountNavNode;AppDashboardNavNode_S
+;UserManageNavNode;;Manage Users;Manage Users;DsMyAccountNavNode;UserManageNavNode_S
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;&linkRef;target(code)[default='sameWindow'];styleAttributes
+;;MyProfileLink;My Account;/my-profile;MyProfileLink_S;;person
+;;OrderHistoryLink;My Orders;/my-orders;OrderHistoryLink_S;;list_alt
+;;MyInvoicesLink;My Invoices;/my-invoices;MyInvoicesLink_S;;receipt_long
+;;MyReturnsLink;My Returns;/rma-tracking;MyReturnsLink_S;;assignment_return
+;;MyQuotesLink;My Quotes;/my-quotes;MyQuotesLink_S;;request_quote
+;;SavedCartsLink;Saved Carts;/saved-carts;SavedCartsLink_S;;shopping_cart
+;;MyEquipmentLink;My Equipment;/my-equipments;MyEquipmentLink_S;;precision_manufacturing
+;;MyFavLink;My Favorites;/my-favorites;MyFavLink_S;;favorite
+;;FeedbackLinksLink;Feedback;/feedback;FeedbackLinksLink_S;;feedback
+;;AppDashboardLink;Registration Requests;/dashboard;AppDashboardLink_S;;dashboard
+;;UserManageLink;Manage Users;/manageuser;UserManageLink_S;;manage_accounts
+
+INSERT_UPDATE CMSNavigationEntry;uid[unique=true];$contentCV[unique=true];name;navigationNode(&nodeRef);item(&linkRef)
+;MyProfileNavNodeEntry;;MyProfileNavNodeEntry;MyProfileNavNode_S;MyProfileLink_S
+;OrderHistoryNavNodeEntry;;OrderHistoryNavNodeEntry;OrderHistoryNavNode_S;OrderHistoryLink_S
+;MyInvoicesNavNodeEntry;;MyInvoicesNavNodeEntry;MyInvoicesNavNode_S;MyInvoicesLink_S
+;MyReturnsNavNodeEntry;;MyReturnsNavNodeEntry;MyReturnsNavNode_S;MyReturnsLink_S
+;MyQuotesNavNodeEntry;;MyQuotesNavNodeEntry;MyQuotesNavNode_S;MyQuotesLink_S
+;SavedCartsNavNodeEntry;;SavedCartsNavNodeEntry;SavedCartsNavNode_S;SavedCartsLink_S
+;MyEquipmentNavNodeEntry;;MyEquipmentNavNodeEntry;MyEquipmentNavNode_S;MyEquipmentLink_S
+;MyFavNavNodeEntry;;MyFavNavNodeEntry;MyFavNavNode_S;MyFavLink_S
+;FeedbackLinksNavNodeEntry;;FeedbackLinksNavNodeEntry;FeedbackLinksNavNode_S;FeedbackLinksLink_S
+;AppDashboardNavNodeEntry;;AppDashboardNavNodeEntry;AppDashboardNavNode_S;AppDashboardLink_S
+;UserManageNavNodeEntry;;UserManageNavNodeEntry;UserManageNavNode_S;UserManageLink_S
+
+UPDATE CMSNavigationNode;uid[unique=true];$contentCV[unique=true];children(uid,$contentCV)
+;DsMyAccountNavNode;;MyProfileNavNode,OrderHistoryNavNode,MyInvoicesNavNode,MyReturnsNavNode,MyQuotesNavNode,SavedCartsNavNode,MyEquipmentNavNode,MyFavNavNode,FeedbackLinksNavNode,AppDashboardNavNode,UserManageNavNode
+
+INSERT_UPDATE NavigationComponent;$contentCV[unique=true];uid[unique=true];name;styleClass;navigationNode(&nodeRef)
+;;MyAccountComponent;My Account;accNavComponent;DsMyAccountNavNode_S
+
+
+# -----------------------------------------------------------------------------
+# Online
+# -----------------------------------------------------------------------------
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Online])[default=$contentCatalog:Online]
+
+INSERT_UPDATE CMSNavigationNode;uid[unique=true];$contentCV[unique=true];name;title;parent(uid,$contentCV);&nodeRef
+;DsMyAccountNavNode;;My Account;My Account;BhgeNavNode;DsMyAccountNavNode_O
+;MyProfileNavNode;;My Account;My Account;DsMyAccountNavNode;MyProfileNavNode_O
+;OrderHistoryNavNode;;My Orders;My Orders;DsMyAccountNavNode;OrderHistoryNavNode_O
+;MyInvoicesNavNode;;My Invoices;My Invoices;DsMyAccountNavNode;MyInvoicesNavNode_O
+;MyReturnsNavNode;;My Returns;My Returns;DsMyAccountNavNode;MyReturnsNavNode_O
+;MyQuotesNavNode;;My Quotes;My Quotes;DsMyAccountNavNode;MyQuotesNavNode_O
+;SavedCartsNavNode;;Saved Carts;Saved Carts;DsMyAccountNavNode;SavedCartsNavNode_O
+;MyEquipmentNavNode;;My Equipment;My Equipment;DsMyAccountNavNode;MyEquipmentNavNode_O
+;MyFavNavNode;;My Favorites;My Favorites;DsMyAccountNavNode;MyFavNavNode_O
+;FeedbackLinksNavNode;;Feedback;Feedback;DsMyAccountNavNode;FeedbackLinksNavNode_O
+;AppDashboardNavNode;;Registration Requests;Registration Requests;DsMyAccountNavNode;AppDashboardNavNode_O
+;UserManageNavNode;;Manage Users;Manage Users;DsMyAccountNavNode;UserManageNavNode_O
+
+INSERT_UPDATE CMSLinkComponent;$contentCV[unique=true];uid[unique=true];name;url;&linkRef;target(code)[default='sameWindow'];styleAttributes
+;;MyProfileLink;My Account;/my-profile;MyProfileLink_O;;person
+;;OrderHistoryLink;My Orders;/my-orders;OrderHistoryLink_O;;list_alt
+;;MyInvoicesLink;My Invoices;/my-invoices;MyInvoicesLink_O;;receipt_long
+;;MyReturnsLink;My Returns;/rma-tracking;MyReturnsLink_O;;assignment_return
+;;MyQuotesLink;My Quotes;/my-quotes;MyQuotesLink_O;;request_quote
+;;SavedCartsLink;Saved Carts;/saved-carts;SavedCartsLink_O;;shopping_cart
+;;MyEquipmentLink;My Equipment;/my-equipments;MyEquipmentLink_O;;precision_manufacturing
+;;MyFavLink;My Favorites;/my-favorites;MyFavLink_O;;favorite
+;;FeedbackLinksLink;Feedback;/feedback;FeedbackLinksLink_O;;feedback
+;;AppDashboardLink;Registration Requests;/dashboard;AppDashboardLink_O;;dashboard
+;;UserManageLink;Manage Users;/manageuser;UserManageLink_O;;manage_accounts
+
+INSERT_UPDATE CMSNavigationEntry;uid[unique=true];$contentCV[unique=true];name;navigationNode(&nodeRef);item(&linkRef)
+;MyProfileNavNodeEntry;;MyProfileNavNodeEntry;MyProfileNavNode_O;MyProfileLink_O
+;OrderHistoryNavNodeEntry;;OrderHistoryNavNodeEntry;OrderHistoryNavNode_O;OrderHistoryLink_O
+;MyInvoicesNavNodeEntry;;MyInvoicesNavNodeEntry;MyInvoicesNavNode_O;MyInvoicesLink_O
+;MyReturnsNavNodeEntry;;MyReturnsNavNodeEntry;MyReturnsNavNode_O;MyReturnsLink_O
+;MyQuotesNavNodeEntry;;MyQuotesNavNodeEntry;MyQuotesNavNode_O;MyQuotesLink_O
+;SavedCartsNavNodeEntry;;SavedCartsNavNodeEntry;SavedCartsNavNode_O;SavedCartsLink_O
+;MyEquipmentNavNodeEntry;;MyEquipmentNavNodeEntry;MyEquipmentNavNode_O;MyEquipmentLink_O
+;MyFavNavNodeEntry;;MyFavNavNodeEntry;MyFavNavNode_O;MyFavLink_O
+;FeedbackLinksNavNodeEntry;;FeedbackLinksNavNodeEntry;FeedbackLinksNavNode_O;FeedbackLinksLink_O
+;AppDashboardNavNodeEntry;;AppDashboardNavNodeEntry;AppDashboardNavNode_O;AppDashboardLink_O
+;UserManageNavNodeEntry;;UserManageNavNodeEntry;UserManageNavNode_O;UserManageLink_O
+
+UPDATE CMSNavigationNode;uid[unique=true];$contentCV[unique=true];children(uid,$contentCV)
+;DsMyAccountNavNode;;MyProfileNavNode,OrderHistoryNavNode,MyInvoicesNavNode,MyReturnsNavNode,MyQuotesNavNode,SavedCartsNavNode,MyEquipmentNavNode,MyFavNavNode,FeedbackLinksNavNode,AppDashboardNavNode,UserManageNavNode
+
+INSERT_UPDATE NavigationComponent;$contentCV[unique=true];uid[unique=true];name;styleClass;navigationNode(&nodeRef)
+;;MyAccountComponent;My Account;accNavComponent;DsMyAccountNavNode_O

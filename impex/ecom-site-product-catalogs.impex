@@ -1,0 +1,37 @@
+# =============================================================================
+# Why search still 400s after the last ImpEx
+#
+# Custom BHGEBaseSiteServiceImpl.getProductCatalogs() does NOT use CMSSite.
+# It uses the CURRENT store only:
+#   baseStoreService.getCurrentBaseStore().getCatalogs()
+#
+# Logged-in user (amira.mosley) default sold-to is *_1830_GE_GE, so the
+# current store is 1830_BaseStore — not bhge. That store has no catalogs.
+# Overlap with session catalogs is empty -> same ConversionException.
+#
+# BaseStore2CatalogRel is not a type. The relation is CatalogsForBaseStores.
+# =============================================================================
+
+INSERT_UPDATE Catalog;id[unique=true];name[lang=en]
+;bhgeGlobalProductCatalog;BHGE GLOBAL Product Catalog
+
+INSERT_UPDATE CatalogVersion;catalog(id)[unique=true];version[unique=true];active;languages(isoCode)
+;bhgeGlobalProductCatalog;Online;true;en
+;bhgeGlobalProductCatalog;Staged;false;en
+
+# Current-store catalogs (this is what search actually reads)
+UPDATE BaseStore;uid[unique=true];catalogs(id);solrFacetSearchConfiguration(name)
+;bhge;bhgeGlobalProductCatalog;bhgeIndex
+;1830_BaseStore;bhgeGlobalProductCatalog;bhgeIndex
+;1820_BaseStore;bhgeGlobalProductCatalog;bhgeIndex
+;1800_BaseStore;bhgeGlobalProductCatalog;bhgeIndex
+;1200_BaseStore;bhgeGlobalProductCatalog;bhgeIndex
+;1600_BaseStore;bhgeGlobalProductCatalog;bhgeIndex
+;6210_BaseStore;bhgeGlobalProductCatalog;bhgeIndex
+
+UPDATE CMSSite;uid[unique=true];productCatalogs(id);defaultCatalog(id)
+;bhge;bhgeGlobalProductCatalog;bhgeGlobalProductCatalog
+
+UPDATE SolrFacetSearchConfig;name[unique=true];catalogVersions(catalog(id),version)[mode=append]
+;bhgeIndex;bhgeGlobalProductCatalog:Online
+;bhgeIndex;bhgeGlobalProductCatalog:Staged

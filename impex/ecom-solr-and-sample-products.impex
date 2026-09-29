@@ -1,0 +1,65 @@
+# =============================================================================
+# PLP 400 fix + sample Panametrics products
+#
+# Hybris log:
+#   ConversionException: Missing solr facet search indexed catalog versions
+#   at SearchSolrQueryPopulator.populate
+#
+# Store session catalogs are bhgeGlobalProductCatalog (see store.impex).
+# Solr config bhgeIndex must include those versions or product search returns 400.
+#
+# After import: HAC -> Solr Facet Search -> bhgeIndex -> Index -> Full.
+# =============================================================================
+
+# --- 1) Solr search config: catalog versions that overlap the store session ----
+UPDATE SolrFacetSearchConfig;name[unique=true];catalogVersions(catalog(id),version)[mode=append]
+;bhgeIndex;bhgeGlobalProductCatalog:Online
+;bhgeIndex;bhgeGlobalProductCatalog:Staged
+;bhgeIndex;bhgeProductCatalog:Online
+;bhgeIndex;bhgeProductCatalog:Staged
+;bhgeIndex;ERP_CLASSIFICATION_HYB:ERP_IMPORT
+
+UPDATE BaseSite;uid[unique=true];solrFacetSearchConfiguration(name)
+;bhge;bhgeIndex
+
+UPDATE BaseStore;uid[unique=true];solrFacetSearchConfiguration(name)
+;bhge;bhgeIndex
+
+# --- 2) Sample products on the global catalog (same catalog the store uses) ----
+$catalog=bhgeGlobalProductCatalog
+$staged=catalogVersion(catalog(id[default=$catalog]),version[default='Staged'])[unique=true,default=$catalog:Staged]
+$online=catalogVersion(catalog(id[default=$catalog]),version[default='Online'])[unique=true,default=$catalog:Online]
+$super=supercategories(code,catalogVersion(catalog(id),version))
+$approved=approvalstatus(code)[default='approved']
+
+INSERT_UPDATE Unit;code[unique=true];name[lang=en];unitType
+;pieces;pieces;pieces
+
+INSERT_UPDATE GEEdgeProduct;code[unique=true];$staged;name[lang=en];description[lang=en];$super;unit(code);$approved;hybrisStatus(code)[default='CATALOG'];productType(code)[default='PA']
+;PT-AT868; ;AT868 Portable Flowmeter;Sample Panametrics portable ultrasonic flowmeter for local PLP.;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000041:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-AT600; ;AT600 Clamp-on Flowmeter;Sample Panametrics clamp-on ultrasonic flowmeter for local PLP.;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000042:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-XMT868i; ;XMT868i Process Inline Meter;Sample Panametrics inline flow transmitter for local PLP.;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000043:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-PM880; ;PM880 Trace Moisture Analyzer;Sample Panametrics moisture analyzer for local PLP.;ECOM_LVL2_00000010:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000044:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-OXY; ;XMO2 Oxygen Analyzer;Sample Panametrics oxygen analyzer for local PLP.;ECOM_LVL2_00000010:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000046:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+
+INSERT_UPDATE GEEdgeProduct;code[unique=true];$online;name[lang=en];description[lang=en];$super;unit(code);$approved;hybrisStatus(code)[default='CATALOG'];productType(code)[default='PA']
+;PT-AT868; ;AT868 Portable Flowmeter;Sample Panametrics portable ultrasonic flowmeter for local PLP.;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000041:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-AT600; ;AT600 Clamp-on Flowmeter;Sample Panametrics clamp-on ultrasonic flowmeter for local PLP.;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000042:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-XMT868i; ;XMT868i Process Inline Meter;Sample Panametrics inline flow transmitter for local PLP.;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000043:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-PM880; ;PM880 Trace Moisture Analyzer;Sample Panametrics moisture analyzer for local PLP.;ECOM_LVL2_00000010:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000044:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+;PT-OXY; ;XMO2 Oxygen Analyzer;Sample Panametrics oxygen analyzer for local PLP.;ECOM_LVL2_00000010:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL3_00000046:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;pieces;;SELL;PA
+
+# --- 3) Prices (USD) ----------------------------------------------------------
+INSERT_UPDATE PriceRow;product(code,$online)[unique=true];currency(isocode)[unique=true];price;unit(code);net[default=true];$online
+;PT-AT868;USD;12500;pieces;;
+;PT-AT600;USD;9800;pieces;;
+;PT-XMT868i;USD;15200;pieces;;
+;PT-PM880;USD;8900;pieces;;
+;PT-OXY;USD;7600;pieces;;
+
+INSERT_UPDATE PriceRow;product(code,$staged)[unique=true];currency(isocode)[unique=true];price;unit(code);net[default=true];$staged
+;PT-AT868;USD;12500;pieces;;
+;PT-AT600;USD;9800;pieces;;
+;PT-XMT868i;USD;15200;pieces;;
+;PT-PM880;USD;8900;pieces;;
+;PT-OXY;USD;7600;pieces;;

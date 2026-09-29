@@ -1,0 +1,19 @@
+# =============================================================================
+# Parent B2B unit + FPT / Tesco user groups
+# HAC -> Console -> ImpEx Import  (legacy mode OFF)
+#
+# Why the previous script failed:
+#   uid is unique on Principal (parent of B2BUnit). GEEDGENETPRIMESOLDTO already
+#   exists from initialize/sample data. INSERT_UPDATE B2BUnit then tried to
+#   CREATE a second item and UniqueAttributesInterceptor blocked it.
+#   The B2BUserGroup lines failed only because unit(uid) could not resolve.
+# =============================================================================
+
+# 1) Update the existing unit. Do NOT INSERT a second Principal with this uid.
+UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description
+;GEEDGENETPRIMESOLDTO;GEEDGENETPRIMESOLDTO;GEEDGENETPRIMESOLDTO;GEEDGENETPRIMESOLDTO
+
+# 2) Groups that point at that unit (safe to insert or update)
+INSERT_UPDATE B2BUserGroup;uid[unique=true];name;locName[lang=en];unit(uid)
+;getescob2busergroup;GE Tesco User Group;GE Tesco User Group;GEEDGENETPRIMESOLDTO
+;bhgefptb2busergroup;BHGE FPT User Group;BHGE FPT User Group;GEEDGENETPRIMESOLDTO

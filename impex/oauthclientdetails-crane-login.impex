@@ -1,0 +1,45 @@
+# =====================================================================================
+# OAuth clients for SAP Commerce 2211.44 Authorization Server used by the Spartacus
+# storefront when crane.login.byhybris=true (and environment.useHybrisAuth=true).
+#
+# Import via HAC -> Console -> Import (script mode) OR through update running system.
+# Keep in sync with docs: help.sap.com Custom Login Page approach (2211.44).
+# =====================================================================================
+
+$scope=basic
+$secret=secret
+
+# -------------------------------------------------------------------------------------
+# 1. Default Spartacus client (ROPC / password grant) — used by the current code path
+#    login-form.component.ts -> OAuthLibWrapperService.authorizeWithPasswordFlow().
+#    NOTE: SAP ships this client out-of-the-box in 2211.44; this INSERT_UPDATE is
+#    idempotent and safe to re-import to guarantee configuration.
+# -------------------------------------------------------------------------------------
+INSERT_UPDATE OAuthClientDetails;clientId[unique=true];resourceIds;scope;authorizedGrantTypes                                       ;authorities;clientSecret;registeredRedirectUri
+                                ;mobile_android      ;hybris     ;$scope;password,refresh_token,client_credentials                  ;ROLE_CLIENT;$secret     ;http://localhost:4200/;
+
+# -------------------------------------------------------------------------------------
+# 2. Trusted client used by OCC secured endpoints (client_credentials).
+#    Corresponds to ROLE_TRUSTED_CLIENT already referenced across DSOCC controllers.
+# -------------------------------------------------------------------------------------
+INSERT_UPDATE OAuthClientDetails;clientId[unique=true];resourceIds;scope;authorizedGrantTypes                                       ;authorities                    ;clientSecret;registeredRedirectUri
+                                ;trusted_client      ;hybris     ;$scope;password,client_credentials,refresh_token                  ;ROLE_TRUSTED_CLIENT,ROLE_CLIENT;$secret     ;http://localhost:4200/;
+
+# -------------------------------------------------------------------------------------
+# 3. SPA public client for the SAP-recommended Custom Login Page approach
+#    (Authorization Code + PKCE). Public client => empty clientSecret.
+#    On 2211-jdk21 (Spring Authorization Server): the attribute is `public` (boolean)
+#    and Spring's client authentication method must be `none` for PKCE public clients.
+#    `requireProofKey` defaults to TRUE, so PKCE is enforced automatically.
+#    Add every storefront origin that will receive the redirect.
+# -------------------------------------------------------------------------------------
+INSERT_UPDATE OAuthClientDetails;clientId[unique=true];resourceIds;scope;authorizedGrantTypes             ;authorities;clientSecret;public;authenticationMethods(code);registeredRedirectUri
+                                ;spa-client          ;hybris     ;$scope;authorization_code,refresh_token;ROLE_CLIENT;            ;true  ;none                       ;http://localhost:4200/login,http://localhost:4200/,https://localhost:4200/login,https://localhost:4200/;
+
+# -------------------------------------------------------------------------------------
+# Reference: additional scopes used by extended flows can be appended to $scope, e.g.
+#   $scope=basic,openid,profile,email
+# The authorization server issues JWT access tokens in 2211.44; JWKS is exposed at
+#   {occBaseUrl}/authorizationserver/oauth/token_keys
+# and validated by BHGEJwtConfigProvider on the OCC side.
+# =====================================================================================

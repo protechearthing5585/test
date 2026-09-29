@@ -1,0 +1,105 @@
+# =============================================================================
+# Guest / Panametrics category data (matches production OCC tree)
+#
+# Local GET /occ/v2/bhge/users/anonymous/ECOM_LVL0_00000000?guestSalesArea=1830_GE_GE
+# returns {"categories":[]} because:
+#   1) BHGEAnonymousUserCatalog is not linked to the live category items
+#   2) The previous ImpEx created a tiny tree in the wrong catalog
+# Production loads L1 ECOM_LVL1_00000002 (Panametrics) with L2 Flow / Process Analyzers
+# from ClassificationClass in ERP_CLASSIFICATION_HYB:ERP_IMPORT.
+#
+# Import in HAC -> ImpEx Import. Then hard-refresh /panametrics.
+# =============================================================================
+
+# --- 1) Drop extra Category copies so getCategoryForCode stays unique ----------
+REMOVE Category;code[unique=true];catalogVersion(catalog(id),version)[unique=true]
+;ECOM_LVL0_00000000;bhgeContentCatalog:Online
+;ECOM_LVL0_00000000;bhgeContentCatalog:Staged
+;ECOM_LVL0_00000000;bhgeProductCatalog:Online
+;ECOM_LVL0_00000000;bhgeProductCatalog:Staged
+;ECOM_LVL0_00000000;bhgeGlobalProductCatalog:Online
+;ECOM_LVL0_00000000;bhgeGlobalProductCatalog:Staged
+;ECOM_LVL1_00000001;bhgeContentCatalog:Online
+;ECOM_LVL1_00000001;bhgeContentCatalog:Staged
+;ECOM_LVL1_00000001;bhgeProductCatalog:Online
+;ECOM_LVL1_00000001;bhgeProductCatalog:Staged
+;ECOM_LVL1_00000001;bhgeGlobalProductCatalog:Online
+;ECOM_LVL1_00000001;bhgeGlobalProductCatalog:Staged
+;ECOM_LVL1_00000002;bhgeContentCatalog:Online
+;ECOM_LVL1_00000002;bhgeContentCatalog:Staged
+;ECOM_LVL1_00000002;bhgeProductCatalog:Online
+;ECOM_LVL1_00000002;bhgeProductCatalog:Staged
+;ECOM_LVL1_00000002;bhgeGlobalProductCatalog:Online
+;ECOM_LVL1_00000002;bhgeGlobalProductCatalog:Staged
+;ECOM_LVL1_00000007;bhgeContentCatalog:Online
+;ECOM_LVL1_00000007;bhgeContentCatalog:Staged
+;ECOM_LVL1_00000007;bhgeProductCatalog:Online
+;ECOM_LVL1_00000007;bhgeProductCatalog:Staged
+;ECOM_LVL1_00000007;bhgeGlobalProductCatalog:Online
+;ECOM_LVL1_00000007;bhgeGlobalProductCatalog:Staged
+;ECOM_LVL2_00000001;bhgeContentCatalog:Online
+;ECOM_LVL2_00000001;bhgeContentCatalog:Staged
+;ECOM_LVL2_00000001;bhgeProductCatalog:Online
+;ECOM_LVL2_00000001;bhgeProductCatalog:Staged
+;ECOM_LVL2_00000001;bhgeGlobalProductCatalog:Online
+;ECOM_LVL2_00000001;bhgeGlobalProductCatalog:Staged
+;ECOM_LVL2_00000009;bhgeContentCatalog:Online
+;ECOM_LVL2_00000009;bhgeContentCatalog:Staged
+;ECOM_LVL2_00000009;bhgeProductCatalog:Online
+;ECOM_LVL2_00000009;bhgeProductCatalog:Staged
+;ECOM_LVL2_00000009;bhgeGlobalProductCatalog:Online
+;ECOM_LVL2_00000009;bhgeGlobalProductCatalog:Staged
+;ECOM_LVL2_00000010;bhgeContentCatalog:Online
+;ECOM_LVL2_00000010;bhgeContentCatalog:Staged
+;ECOM_LVL2_00000010;bhgeProductCatalog:Online
+;ECOM_LVL2_00000010;bhgeProductCatalog:Staged
+;ECOM_LVL2_00000010;bhgeGlobalProductCatalog:Online
+;ECOM_LVL2_00000010;bhgeGlobalProductCatalog:Staged
+
+# --- 2) Production tree lives on the ERP classification catalog ---------------
+$erp=ERP_CLASSIFICATION_HYB
+$erpCv=catalogversion(catalog(id[default=$erp]),version[default='ERP_IMPORT'])[unique=true,default=$erp:ERP_IMPORT]
+$super=superCategories(code,$erpCv)
+
+INSERT_UPDATE ClassificationClass;code[unique=true];name[lang=en];$super;$erpCv
+;ECOM_LVL0_00000000;Products;;
+;ECOM_LVL1_00000001;Inspection Technologies;ECOM_LVL0_00000000;
+;ECOM_LVL1_00000002;Panametrics;ECOM_LVL0_00000000;
+;ECOM_LVL1_00000006;Cordant;ECOM_LVL0_00000000;
+;ECOM_LVL1_00000007;Nexus Controls;ECOM_LVL0_00000000;
+;ECOM_LVL1_00000008;Druck;ECOM_LVL0_00000000;
+;ECOM_LVL1_00000009;Reuter-Stokes;ECOM_LVL0_00000000;
+;ECOM_LVL2_00000001;Portable Instruments;ECOM_LVL1_00000001;
+;ECOM_LVL2_00000009;Flow;ECOM_LVL1_00000002;
+;ECOM_LVL2_00000010;Process Analyzers;ECOM_LVL1_00000002;
+;ECOM_LVL3_00000041;Portable Flowmeters;ECOM_LVL2_00000009;
+;ECOM_LVL3_00000042;Clamp-on Flowmeters;ECOM_LVL2_00000009;
+;ECOM_LVL3_00000043;Process Inline Meters;ECOM_LVL2_00000009;
+;ECOM_LVL3_00000049;Flare Management;ECOM_LVL2_00000009;
+;ECOM_LVL3_00000044;Trace Moisture;ECOM_LVL2_00000010;
+;ECOM_LVL3_00000046;Oxygen;ECOM_LVL2_00000010;
+;ECOM_LVL3_00000056;OEM;ECOM_LVL2_00000010;
+
+# --- 3) Guest store + anonymous catalog (this is what the OCC API reads) ------
+UPDATE BaseStore;uid[unique=true];defaultCountry(isocode)
+;bhge;US
+
+INSERT_UPDATE BHGEGlobalProperties;uid[unique=true];value
+;guestCategories;ECOM_LVL2_00000009,ECOM_LVL2_00000010,ECOM_LVL1_00000002
+
+INSERT_UPDATE BHGEAnonymousUserCatalog;country(isocode)[unique=true];salesOrg[unique=true];distributionChannel[unique=true];division[unique=true];defaultSalesOrg;categories(code,catalogVersion(catalog(id),version))
+;US;1800;GE;GE;true;ECOM_LVL1_00000001:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000006:ERP_CLASSIFICATION_HYB:ERP_IMPORT,ECOM_LVL1_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT
+;US;1830;GE;GE;false;ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT
+;US;1200;BN;BN;false;ECOM_LVL1_00000006:ERP_CLASSIFICATION_HYB:ERP_IMPORT
+;US;1600;RS;RS;false;ECOM_LVL1_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT
+;GB;6210;GE;GE;true;ECOM_LVL1_00000008:ERP_CLASSIFICATION_HYB:ERP_IMPORT
+
+# Sales-area stamp used when building the OCC tree
+INSERT_UPDATE BHGECategorytoSalesOrg;category(code,catalogVersion(catalog(id),version))[unique=true];salesOrg[unique=true];distributionChannel[unique=true];division[unique=true]
+;ECOM_LVL1_00000001:ERP_CLASSIFICATION_HYB:ERP_IMPORT;1800;GE;GE
+;ECOM_LVL1_00000002:ERP_CLASSIFICATION_HYB:ERP_IMPORT;1830;GE;GE
+;ECOM_LVL1_00000006:ERP_CLASSIFICATION_HYB:ERP_IMPORT;1200;BN;BN
+;ECOM_LVL1_00000008:ERP_CLASSIFICATION_HYB:ERP_IMPORT;6210;GE;GE
+;ECOM_LVL1_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT;1600;RS;RS
+;ECOM_LVL2_00000009:ERP_CLASSIFICATION_HYB:ERP_IMPORT;1830;GE;GE
+;ECOM_LVL2_00000010:ERP_CLASSIFICATION_HYB:ERP_IMPORT;1830;GE;GE
