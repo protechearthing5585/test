@@ -21,3 +21,14 @@ Impex files changed 2026-09-26 through 2026-09-30 under D:\Crane\chyb
 2026-09-30 23:06	D:\Crane\chyb\hybris\bin\custom\bhge\bhgeinitialdata\resources\bhgeinitialdata\import\sampledata\commerceorg\user-groups.impex
 2026-09-30 23:06	D:\Crane\chyb\hybris\config\impex\scpi-outbound-endpoints.impex
 2026-09-30 23:07	D:\Crane\chyb\hybris\bin\custom\bhge\bhgecore\resources\bhgecore\import\common\US551924_My invoices_Global_Property.impex
+
+
+
+  "oauth": {
+    "createdate": "2026-07-27T15:56:12.954Z",
+    "clientid": "sb-4987ba36-a991-4583-9203-d44c6a74488c!b63008|it-rt-is-dev-435v2e5y!b46",
+    "clientsecret": "caf1b730-7fba-48f0-b8f9-7d5af07a6c9f$cZbLqPWtQ66zrbQIT03wB6pumjNTNnp0HkVWHr0iqO4=",
+    "tokenurl": "https://is-dev-435v2e5y.authentication.us21.hana.ondemand.com/oauth/token",
+    "url": "https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com"
+  }
+}
