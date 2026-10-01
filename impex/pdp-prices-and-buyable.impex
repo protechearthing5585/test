@@ -1,0 +1,72 @@
+# =============================================================================
+# PDP: "This product is not available for the region you are logged into."
+#
+# HAC -> Console -> ImpEx Import (legacy mode OFF). Then re-login.
+# No Solr index is required for the PDP price / buy button.
+#
+# Buy is shown only when all of these are true
+# (BHGEProductHybrisStatusStrategyImpl + getBuyAction):
+#   1) GEEdgeCustomer.defaultSoldTo.ecommerceFlag is E1 or E2
+#   2) defaultB2BUnit sales org matches a product BHGESalesAreaData row
+#      with hybrisStatus SELL or SELLANDRETURN and materialStatus P1/P2/P3
+#   3) PriceRow price > 0 (otherwise the action is CHECK_PRICE, and the
+#      PDP template still shows the region message)
+#
+# Logged-in unit is 0000001830_1830_GE_GE. defaultSoldTo was empty, and
+# neither 0000001830 nor 0000138305 had ecommerceFlag.
+# DEW.IQ already has sales area 1830 / SELLANDRETURN / P1 and no USD price.
+# =============================================================================
+
+# --- 1) Sold-to must be allowed to buy (E1) -----------------------------------
+UPDATE B2BUnit;uid[unique=true];ecommerceFlag
+;0000001830;E1
+;0000138305;E1
+;0000251401;E1
+
+# uid lookup, not email (stored emails differ by case).
+UPDATE GEEdgeCustomer;uid[unique=true];defaultSoldTo(uid);defaultB2BUnit(uid)
+;amira.mosley@bakerhughes.com;0000001830;0000001830_1830_GE_GE
+;amy.beaudry@bakerhughes.com;0000251401;0000251401_1830_GE_GE
+
+# --- 2) dew.IQ sales area for Panametrics (1830 / GE / GE) --------------------
+# Existing uid is "DEW.IQ|1830" on bhgeGlobalProductCatalog:Online.
+UPDATE BHGESalesAreaData;uid[unique=true];catalogVersion(catalog(id),version)[unique=true];hybrisStatus(code);materialStatus(code)
+;DEW.IQ|1830;bhgeGlobalProductCatalog:Online;SELLANDRETURN;P1
+
+# --- 3) USD list prices for every Online product that has none ----------------
+$catalog=bhgeGlobalProductCatalog
+$online=catalogVersion(catalog(id[default=$catalog]),version[default='Online'])[unique=true,default=$catalog:Online]
+
+INSERT_UPDATE PriceRow;product(code,$online)[unique=true];currency(isocode)[unique=true];price;unit(code);net;minqtd;$online
+;1111H;USD;1200;PCE;true;1;
+;AT600-VAC-M;USD;9800;PCE;true;1;
+;AURORA H2O;USD;6400;PCE;true;1;
+;C-PT;USD;450;PCE;true;1;
+;C-RS;USD;450;EA;true;1;
+;CGA351;USD;3200;PCE;true;1;
+;DEW.IQ;USD;4500;PCE;true;1;
+;DF868;USD;8700;PCE;true;1;
+;IA2505-2-V0;USD;2100;EA;true;1;
+;IA4139-1-V0;USD;2100;EA;true;1;
+;IO620IS-BATTERY;USD;350;EA;true;1;
+;IQ.PROBE;USD;1800;PCE;true;1;
+;IS610-7;USD;1600;EA;true;1;
+;IS615S-4;USD;1600;EA;true;1;
+;IS705129M6560-1;USD;2400;EA;true;1;
+;IS705129M6560-2;USD;2400;EA;true;1;
+;IS705129M6560-3;USD;2400;EA;true;1;
+;M;USD;900;EA;true;1;
+;M2ET-HH;USD;1500;EA;true;1;
+;MISP2;USD;1100;EA;true;1;
+;MISPE;USD;1100;EA;true;1;
+;MOISTURE.IQ;USD;5200;PCE;true;1;
+;OXY.IQ;USD;4800;PCE;true;1;
+;PF10-Z3;USD;3600;PCE;true;1;
+;PM880;USD;8900;EA;true;1;
+;PT9-SYS;USD;2700;EA;true;1;
+;XGF868I;USD;11200;PCE;true;1;
+;XGM868;USD;10500;PCE;true;1;
+;XMO2;USD;7600;PCE;true;1;
+;XMT1000;USD;13400;PCE;true;1;
+;XMT868I;USD;15200;EA;true;1;
+;XMTC;USD;6900;PCE;true;1;

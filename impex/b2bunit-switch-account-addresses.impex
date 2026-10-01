@@ -1,0 +1,54 @@
+# =============================================================================
+# Switch account: sold-to addresses + sales areas
+#
+# HAC -> Console -> ImpEx Import (legacy mode OFF). Then log out and back in.
+#
+# Accounts on the Change Customer Account screen:
+#   0000251401  LECTRODRYER LLC
+#   0000253119  HUSKY REFINERY
+#
+# Switch fails when the sold-to has no address. Profile populate walks
+# B2BUnit.addresses and looks for a non-billing ship-to. The account list
+# shows an address only when sapAddressUsage is DE.
+# Each sold-to gets:
+#   - billing address, sapAddressUsage=DE  (shown on the account row)
+#   - shipping address, billingAddress=false (used when the account is selected)
+# The same pair is stored on the sales-area child, which checkout reads.
+# =============================================================================
+
+INSERT_UPDATE OrgUnit;uid[unique=true];name
+;1830_GE_GE;GE Infrastr. Sensing
+;1800_GE_GE;GEInspTechnologiesLP
+
+# --- Sold-to + sales-area units ------------------------------------------------
+# groups on the child make it a member of the sold-to.
+INSERT_UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description;accountgroup;ecommerceFlag
+;0000251401;LECTRODRYER LLC;LECTRODRYER LLC;LECTRODRYER LLC;0001;E1
+;0000253119;HUSKY REFINERY;HUSKY REFINERY;HUSKY REFINERY;0001;E1
+
+INSERT_UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description;accountgroup;ecommerceFlag;groups(uid)
+;0000251401_1830_GE_GE;LECTRODRYER LLC;LECTRODRYER LLC;LECTRODRYER LLC;0001;E1;0000251401,1830_GE_GE
+;0000251401_1800_GE_GE;LECTRODRYER LLC;LECTRODRYER LLC;LECTRODRYER LLC;0001;E1;0000251401,1800_GE_GE
+;0000253119_1830_GE_GE;HUSKY REFINERY;HUSKY REFINERY;HUSKY REFINERY;0001;E1;0000253119,1830_GE_GE
+;0000253119_1800_GE_GE;HUSKY REFINERY;HUSKY REFINERY;HUSKY REFINERY;0001;E1;0000253119,1800_GE_GE
+
+# --- Addresses -----------------------------------------------------------------
+# DE + billingAddress=true  -> account list / sold-to address
+# billingAddress=false      -> ship-to picked when the account is switched
+INSERT_UPDATE Address;owner(B2BUnit.uid)[unique=true];streetname[unique=true];postalcode[unique=true];town;country(isocode);company;billingAddress;shippingAddress;contactAddress;unloadingAddress;sapAddressUsage;sapCustomerID;firstname;lastname
+;0000251401;204 Railroad Street;40475;Richmond;US;LECTRODRYER LLC;true;false;true;false;DE;0000251401;Amy;Beaudry
+;0000251401;210 Railroad Street;40475;Richmond;US;LECTRODRYER LLC;false;true;false;true;;0000251401;Amy;Beaudry
+;0000251401_1830_GE_GE;204 Railroad Street;40475;Richmond;US;LECTRODRYER LLC;true;false;true;false;DE;0000251401;Amy;Beaudry
+;0000251401_1830_GE_GE;210 Railroad Street;40475;Richmond;US;LECTRODRYER LLC;false;true;false;true;;0000251401;Amy;Beaudry
+;0000251401_1800_GE_GE;204 Railroad Street;40475;Richmond;US;LECTRODRYER LLC;true;false;true;false;DE;0000251401;Amy;Beaudry
+;0000251401_1800_GE_GE;210 Railroad Street;40475;Richmond;US;LECTRODRYER LLC;false;true;false;true;;0000251401;Amy;Beaudry
+;0000253119;2800 Central Avenue;45804;Lima;US;HUSKY REFINERY;true;false;true;false;DE;0000253119;Amy;Beaudry
+;0000253119;2810 Central Avenue;45804;Lima;US;HUSKY REFINERY;false;true;false;true;;0000253119;Amy;Beaudry
+;0000253119_1830_GE_GE;2800 Central Avenue;45804;Lima;US;HUSKY REFINERY;true;false;true;false;DE;0000253119;Amy;Beaudry
+;0000253119_1830_GE_GE;2810 Central Avenue;45804;Lima;US;HUSKY REFINERY;false;true;false;true;;0000253119;Amy;Beaudry
+;0000253119_1800_GE_GE;2800 Central Avenue;45804;Lima;US;HUSKY REFINERY;true;false;true;false;DE;0000253119;Amy;Beaudry
+;0000253119_1800_GE_GE;2810 Central Avenue;45804;Lima;US;HUSKY REFINERY;false;true;false;true;;0000253119;Amy;Beaudry
+
+# --- Customer can switch to either sold-to and either sales area --------------
+UPDATE GEEdgeCustomer;uid[unique=true];defaultSoldTo(uid);defaultB2BUnit(uid);groups(uid)[mode=append]
+;amy.beaudry@bakerhughes.com;0000251401;0000251401_1830_GE_GE;0000251401,0000251401_1830_GE_GE,0000251401_1800_GE_GE,0000253119,0000253119_1830_GE_GE,0000253119_1800_GE_GE,b2bcustomergroup

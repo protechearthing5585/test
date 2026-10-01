@@ -10,7 +10,7 @@
 # =============================================================================
 
 # 1) Update the existing unit. Do NOT INSERT a second Principal with this uid.
-UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description
+INSERT_UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description
 ;GEEDGENETPRIMESOLDTO;GEEDGENETPRIMESOLDTO;GEEDGENETPRIMESOLDTO;GEEDGENETPRIMESOLDTO
 
 # 2) Groups that point at that unit (safe to insert or update)

@@ -1,0 +1,99 @@
+# =============================================================================
+# Sold-to 0000138305 (3E NDT, LLC) — buyable Panametrics products
+#
+# HAC -> Console -> ImpEx Import (legacy mode OFF)
+# Import AFTER ecom-solr-and-sample-products.impex (products PT-* must exist).
+# Then HAC -> Solr Facet Search -> bhgeIndex -> Index -> Full, and re-login.
+#
+# Why the PLP stays "Products not found" with Buyable selected
+# ---------------------------------------------------------------------------
+# Search does not use the product.hybrisStatus field. It uses three links:
+#
+# 1) Customer.defaultB2BUnit uid must be {soldTo}_{salesOrg}_{dist}_{div}
+#    Panametrics is sales org 1830 (1830_GE_GE). Sample data only created
+#    0000138305_1800_GE_GE and 0000138305_6040_GE_GE.
+#
+# 2) Customer.defaultSoldTo (0000138305) must have that sales-area unit as a
+#    member. Child units are members by listing the parent in groups(uid).
+#    BHGESolrQueryPostProcessor reads defaultSoldTo.members and filters
+#    salesAreas_string_mv to those sales orgs.
+#
+# 3) Each GEEdgeProduct needs a BHGESalesAreaData row (Product2SalesAreaRelation):
+#      salesOrganization=1830, distributionChannel=GE, division=GE
+#      hybrisStatus=SELLANDRETURN  -> indexed 1830_SELLANDRETURN
+#      materialStatus=P1           -> indexed 1830_P1
+#    Buyable matches SELL or SELLANDRETURN. Returnable matches RETURN or
+#    SELLANDRETURN. Material status must be P1, P2, P3, SO, or CC.
+#    allowedProdPrincipals must contain the sales-area unit uid. The Buy
+#    filter queries visibleToGroups_string_mv = defaultB2BUnit.uid.
+# =============================================================================
+
+# --- 1) Sales-area org (already in sample data; safe to update) ---------------
+INSERT_UPDATE OrgUnit;uid[unique=true];name
+;1830_GE_GE;GE Infrastr. Sensing
+;1800_GE_GE;GEInspTechnologiesLP
+
+# --- 2) Sold-to + Panametrics sales-area unit ---------------------------------
+# groups on the child make it a member of the sold-to (defaultSoldTo.members).
+INSERT_UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description;accountgroup
+;0000138305;3E NDT LLC;3E NDT LLC;3E NDT LLC;0001
+;0000251401;LECTRODRYER LLC;LECTRODRYER LLC;LECTRODRYER LLC;0001
+
+INSERT_UPDATE B2BUnit;uid[unique=true];name;locName[lang=en];description;accountgroup;groups(uid)
+;0000138305_1830_GE_GE;3E NDT LLC;3E NDT LLC;3E NDT LLC;0001;0000138305,1830_GE_GE
+;0000138305_1800_GE_GE;3E NDT LLC;3E NDT LLC;3E NDT LLC;0001;0000138305,1800_GE_GE
+;0000251401_1830_GE_GE;LECTRODRYER LLC;LECTRODRYER LLC;LECTRODRYER LLC;0001;0000251401,1830_GE_GE
+
+# --- 3) Customer -> sold-to + current sales-area unit -------------------------
+# Lookup is by uid. users is utf8_bin, so the stored email
+# (Amira.Mosley@... / Amy.Beaudry@...) does not match a lowercase email key.
+# defaultSoldTo = parent sold-to. defaultB2BUnit = Panametrics sales area.
+UPDATE GEEdgeCustomer;uid[unique=true];defaultSoldTo(uid);defaultB2BUnit(uid);groups(uid)[mode=append]
+;amira.mosley@bakerhughes.com;0000138305;0000138305_1830_GE_GE;0000138305,0000138305_1830_GE_GE,0000138305_1800_GE_GE,b2bcustomergroup
+;amy.beaudry@bakerhughes.com;0000251401;0000251401_1830_GE_GE;0000251401,0000251401_1830_GE_GE,b2bcustomergroup
+
+# --- 4) Product sales-area status (buyable + returnable) ----------------------
+$catalog=bhgeGlobalProductCatalog
+$online=catalogVersion(catalog(id),version)[unique=true,default=$catalog:Online]
+$staged=catalogVersion(catalog(id),version)[unique=true,default=$catalog:Staged]
+
+INSERT_UPDATE BHGESalesAreaData;uid[unique=true];$online;salesOrganization;distributionChannel;division;hybrisStatus(code);materialStatus(code)
+;PT-AT868_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-AT600_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-XMT868i_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-PM880_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-OXY_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-AT868_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-AT600_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-XMT868i_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-PM880_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-OXY_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+
+INSERT_UPDATE BHGESalesAreaData;uid[unique=true];$staged;salesOrganization;distributionChannel;division;hybrisStatus(code);materialStatus(code)
+;PT-AT868_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-AT600_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-XMT868i_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-PM880_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-OXY_1830_GE_GE; ;1830;GE;GE;SELLANDRETURN;P1
+;PT-AT868_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-AT600_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-XMT868i_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-PM880_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+;PT-OXY_1800_GE_GE; ;1800;GE;GE;SELLANDRETURN;P1
+
+# --- 5) Product <-> sales area <-> B2B unit -----------------------------------
+# salesAreaData  = Product2SalesAreaRelation (indexed sales org + status)
+# allowedProdPrincipals = Products2PrincipalsRelation (visibleToGroups)
+UPDATE GEEdgeProduct;code[unique=true];$online;hybrisStatus(code);salesAreaData(uid,catalogVersion(catalog(id),version))[mode=append];allowedProdPrincipals(uid)[mode=append]
+;PT-AT868; ;SELLANDRETURN;PT-AT868_1830_GE_GE:$catalog:Online,PT-AT868_1800_GE_GE:$catalog:Online;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-AT600; ;SELLANDRETURN;PT-AT600_1830_GE_GE:$catalog:Online,PT-AT600_1800_GE_GE:$catalog:Online;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-XMT868i; ;SELLANDRETURN;PT-XMT868i_1830_GE_GE:$catalog:Online,PT-XMT868i_1800_GE_GE:$catalog:Online;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-PM880; ;SELLANDRETURN;PT-PM880_1830_GE_GE:$catalog:Online,PT-PM880_1800_GE_GE:$catalog:Online;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-OXY; ;SELLANDRETURN;PT-OXY_1830_GE_GE:$catalog:Online,PT-OXY_1800_GE_GE:$catalog:Online;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+
+UPDATE GEEdgeProduct;code[unique=true];$staged;hybrisStatus(code);salesAreaData(uid,catalogVersion(catalog(id),version))[mode=append];allowedProdPrincipals(uid)[mode=append]
+;PT-AT868; ;SELLANDRETURN;PT-AT868_1830_GE_GE:$catalog:Staged,PT-AT868_1800_GE_GE:$catalog:Staged;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-AT600; ;SELLANDRETURN;PT-AT600_1830_GE_GE:$catalog:Staged,PT-AT600_1800_GE_GE:$catalog:Staged;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-XMT868i; ;SELLANDRETURN;PT-XMT868i_1830_GE_GE:$catalog:Staged,PT-XMT868i_1800_GE_GE:$catalog:Staged;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-PM880; ;SELLANDRETURN;PT-PM880_1830_GE_GE:$catalog:Staged,PT-PM880_1800_GE_GE:$catalog:Staged;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE
+;PT-OXY; ;SELLANDRETURN;PT-OXY_1830_GE_GE:$catalog:Staged,PT-OXY_1800_GE_GE:$catalog:Staged;0000138305_1830_GE_GE,0000138305_1800_GE_GE,0000251401_1830_GE_GE

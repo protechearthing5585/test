@@ -1,0 +1,16 @@
+# =====================================================================================
+# Stage (s1) spa-client for the Spartacus Authorization Code + PKCE login.
+#
+# Import on the Stage environment only (HAC -> Console -> ImpEx Import).
+# INSERT_UPDATE replaces registeredRedirectUri, so do not run this on d1 or production.
+#
+# Must match the redirect built in spartacus-configuration.module.ts:
+#   window.location.origin + '/login'
+# Stage JS storefront:
+#   https://jsapps.c3zpgfs3oq-cranecoaz1-s1-public.model-t.cc.commerce.ondemand.com
+# =====================================================================================
+
+$scope=basic
+
+INSERT_UPDATE OAuthClientDetails;clientId[unique=true];resourceIds;scope;authorizedGrantTypes             ;authorities;clientSecret;public;authenticationMethods(code);registeredRedirectUri
+                                ;spa-client          ;hybris     ;$scope;authorization_code,refresh_token;ROLE_CLIENT;            ;true  ;none                       ;https://jsapps.c3zpgfs3oq-cranecoaz1-s1-public.model-t.cc.commerce.ondemand.com/login,https://jsapps.c3zpgfs3oq-cranecoaz1-s1-public.model-t.cc.commerce.ondemand.com/;

@@ -1,0 +1,92 @@
+# =============================================================================
+# Add to cart + place order for the local Panametrics sample products
+#
+# HAC -> Console -> ImpEx Import (legacy mode OFF). Then log out and back in.
+#
+# PM880 (PT-PM880) shows Return because the sales-area status is
+# SELLANDRETURN / RETURN and the buy price is not shown. Add to cart is
+# shown only when all of these are true:
+#   1) sold-to ecommerceFlag is E1 or E2
+#   2) the only 1830 / GE / GE sales-area row is SELL with material status P1
+#   3) a USD PriceRow exists with price > 0
+#
+# Replacing salesAreaData (no append) drops older RETURN rows that were
+# matched first and hid the buy button.
+# =============================================================================
+
+$catalog=bhgeGlobalProductCatalog
+$online=catalogVersion(catalog(id[default=$catalog]),version[default='Online'])[unique=true,default=$catalog:Online]
+$staged=catalogVersion(catalog(id[default=$catalog]),version[default='Staged'])[unique=true,default=$catalog:Staged]
+
+INSERT_UPDATE Unit;code[unique=true];name[lang=en];unitType
+;pieces;pieces;pieces
+
+INSERT_UPDATE Warehouse;code[unique=true];name[lang=en]
+;pw_warehouse_s;Powertools Warehouse South
+
+# --- Sold-to can buy ----------------------------------------------------------
+UPDATE B2BUnit;uid[unique=true];ecommerceFlag
+;0000251401;E1
+;0000253119;E1
+
+UPDATE GEEdgeCustomer;uid[unique=true];defaultSoldTo(uid);defaultB2BUnit(uid)
+;amy.beaudry@bakerhughes.com;0000251401;0000251401_1830_GE_GE
+
+# --- One sellable sales area per product (1830 / GE / GE, material P1) --------
+INSERT_UPDATE BHGESalesAreaData;uid[unique=true];$online;salesOrganization;distributionChannel;division;hybrisStatus(code);materialStatus(code)
+;PT-PM880_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-AT868_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-AT600_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-XMT868i_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-OXY_1830_GE_GE; ;1830;GE;GE;SELL;P1
+
+INSERT_UPDATE BHGESalesAreaData;uid[unique=true];$staged;salesOrganization;distributionChannel;division;hybrisStatus(code);materialStatus(code)
+;PT-PM880_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-AT868_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-AT600_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-XMT868i_1830_GE_GE; ;1830;GE;GE;SELL;P1
+;PT-OXY_1830_GE_GE; ;1830;GE;GE;SELL;P1
+
+# Replace the sales-area list so a RETURN row is not used instead.
+UPDATE GEEdgeProduct;code[unique=true];$online;hybrisStatus(code);salesAreaData(uid,catalogVersion(catalog(id),version));allowedProdPrincipals(uid)[mode=append]
+;PT-PM880; ;SELL;PT-PM880_1830_GE_GE:$catalog:Online;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-AT868; ;SELL;PT-AT868_1830_GE_GE:$catalog:Online;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-AT600; ;SELL;PT-AT600_1830_GE_GE:$catalog:Online;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-XMT868i; ;SELL;PT-XMT868i_1830_GE_GE:$catalog:Online;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-OXY; ;SELL;PT-OXY_1830_GE_GE:$catalog:Online;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+
+UPDATE GEEdgeProduct;code[unique=true];$staged;hybrisStatus(code);salesAreaData(uid,catalogVersion(catalog(id),version));allowedProdPrincipals(uid)[mode=append]
+;PT-PM880; ;SELL;PT-PM880_1830_GE_GE:$catalog:Staged;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-AT868; ;SELL;PT-AT868_1830_GE_GE:$catalog:Staged;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-AT600; ;SELL;PT-AT600_1830_GE_GE:$catalog:Staged;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-XMT868i; ;SELL;PT-XMT868i_1830_GE_GE:$catalog:Staged;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+;PT-OXY; ;SELL;PT-OXY_1830_GE_GE:$catalog:Staged;0000251401_1830_GE_GE,0000253119_1830_GE_GE
+
+# --- USD list price -----------------------------------------------------------
+# A PriceRow is used only when all of these are set
+# (BHGEProductPricePopulator.getPriceMap):
+#   priceCriteria     = currency + product code, e.g. USDPT-PM880
+#   salesAreaPriceKey contains the sales org (1830)
+#   startTime before today and endTime after today
+# Without them the PDP price stays 0 and shows "Price Not Found".
+INSERT_UPDATE PriceRow;product(code,$online)[unique=true];currency(isocode)[unique=true];price;unit(code);net;minqtd;priceCriteria;salesAreaPriceKey;startTime[dateformat=yyyy-MM-dd HH:mm:ss];endTime[dateformat=yyyy-MM-dd HH:mm:ss];$online
+;PT-PM880;USD;8900;pieces;true;1;USDPT-PM880;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-AT868;USD;12500;pieces;true;1;USDPT-AT868;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-AT600;USD;9800;pieces;true;1;USDPT-AT600;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-XMT868i;USD;15200;pieces;true;1;USDPT-XMT868i;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-OXY;USD;7600;pieces;true;1;USDPT-OXY;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+
+INSERT_UPDATE PriceRow;product(code,$staged)[unique=true];currency(isocode)[unique=true];price;unit(code);net;minqtd;priceCriteria;salesAreaPriceKey;startTime[dateformat=yyyy-MM-dd HH:mm:ss];endTime[dateformat=yyyy-MM-dd HH:mm:ss];$staged
+;PT-PM880;USD;8900;pieces;true;1;USDPT-PM880;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-AT868;USD;12500;pieces;true;1;USDPT-AT868;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-AT600;USD;9800;pieces;true;1;USDPT-AT600;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-XMT868i;USD;15200;pieces;true;1;USDPT-XMT868i;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+;PT-OXY;USD;7600;pieces;true;1;USDPT-OXY;1830;2020-01-01 00:00:00;2099-12-31 23:59:59;
+
+# --- Stock so the line can be ordered -----------------------------------------
+INSERT_UPDATE StockLevel;productCode[unique=true];warehouse(code)[unique=true];available;inStockStatus(code);reserved
+;PT-PM880;pw_warehouse_s;50;forceInStock;0
+;PT-AT868;pw_warehouse_s;50;forceInStock;0
+;PT-AT600;pw_warehouse_s;50;forceInStock;0
+;PT-XMT868i;pw_warehouse_s;50;forceInStock;0
+;PT-OXY;pw_warehouse_s;50;forceInStock;0

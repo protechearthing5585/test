@@ -1,0 +1,46 @@
+# Outbound Hybris -> SAP BTP Integration Suite (dev)
+# Source: HybrisDS_Endpoint_Details (002).xlsx, sheet Outbound
+# Host: https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http
+# Import in HAC with legacy mode off. Restart is not required; the next SCPI call reads these rows.
+#
+# OAuth is still SCPI_CLOUDNEO_OAUTH_* in local.properties. The spreadsheet does not
+# include the token URL or client id/secret. Those must be the credentials for this
+# new tenant (role HybrisDSOAuthSend) or every call below returns 401.
+
+INSERT_UPDATE BHGEGlobalProperties;uid[unique=true];value
+
+# Cart price and availability
+;SCPI_ZHYB_PRICE_LIST_MAT_AVLBT_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/PriceAvailability
+;SCPI_ZHYB_MAT_ACCESSORIES_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/MaterialAccessories
+;SCPI_ZHYB_OFF_PRC_DATA_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/OfferingPriceData
+
+# Checkout / place order
+;SCPI_Z_ORDERCREATE_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/OrderCreate
+;SCPI_ZGET_FILE_FROM_HYBRIS_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/OrderAttachment
+;SCPI_Z_S_ORDER_PDF_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/OrderPDFDisplay
+;Z_S_ORDER_PDF;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/OrderPDFDisplay
+;SCPI_Z_SORDER_HISTORY_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/OrderHistory
+
+# Quote
+;scpi.zhyb.quote.creation.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/HybrisDS_ECCDS/QuoteCreationAndChange
+;scpi.zhyb.quote.tracking.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/HybrisDS_ECCDS/QuoteTracking
+;scpi.zhyb.quote.to.order.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/HybrisDS_ECCDS/QuoteToOrder
+
+# RMA
+;SCPI_ZHYB_ECOM_RMA_CREATE_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/RMACreate
+;SCPI_ZHYB_RMA_STATUS_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/RMAStatus
+;SCPI_ZHYB_RMA_ATTACHMENTS_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/RMAAttachment
+;SCPI_ZHYB_RMA_NOTIF_DOC_ATTC_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/RMANotificationDocumentPDF
+;SCPI_ZHYB_RMA_EQUIP_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/RMAEquipmentDisplay
+;SCPI_ZHYB_RMA_MEL_CREATE_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/EquipmentCreateUpdate
+;SCPI_ZHYB_RMA_SERV_HIST_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/RMAServiceHistory
+
+# Invoice
+;scpi.zhyb.invoice.tracking.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/ListingInvoice
+;scpi.zhyb.invoice.checkout.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/PostingInvoice
+;scpi.zhyb.invoice.document.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/MyInvoice
+
+# Notifications, registration, variant config
+;scpi.zhyb.ds.email.notification.endpoint.url;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/Notifications
+;SCPI_ZHYB_ECOM_REGISTRATION_ENDPOINT;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/ECCDS/UserRegistration
+;SCPI_ZHYB_LONG_CONFIG_ENDPOINT_URL;https://is-dev-435v2e5y.it-cpi013-rt.cfapps.us21.hana.ondemand.com/http/HybrisVC_ECCDS/SkippingConfig
